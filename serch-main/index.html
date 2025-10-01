@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+        <script src="js/axios.min.js"></script>
+        <link rel="stylesheet" href="css/bootstrap.min.css" />
+        <style>
+            ul,
+            li {
+                list-style: none;
+                padding: 0;
+            }
+            .wrap {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container py-3">
+            <h1 class="mb-3 text-center">카카오 검색</h1>
+
+            <div class="row">
+                <div class="offset-md-3 col-md-6">
+                    <form id="searchform" class="d-flex gap-2 mb-3">
+                        <input
+                            type="text"
+                            name="search"
+                            class="form-control search"
+                            placeholder="검색어를 입력하세요"
+                        />
+                        <button type="submit" class="btn btn-primary" style="width: 100px">검색</button>
+                    </form>
+                    <div id="results" class="list-group">
+                        <ul>
+                            <li>
+                                <h4>
+                                    <a href="#" class="nav-link wrap"
+                                        >Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolores,
+                                        perferendis!</a
+                                    >
+                                </h4>
+                                <p>
+                                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Placeat aliquam culpa
+                                    reiciendis amet architecto, iusto animi facilis beatae, expedita nihil maxime.
+                                    Molestias ratione accusantium at! Commodi quia nulla cumque voluptas.
+                                </p>
+                                <p class="d-flex justify-content-end small">
+                                    <span>2025-09-15</span>
+                                </p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            document.getElementById("searchform").addEventListener("submit", async function (e) {
+                e.preventDefault();
+
+                const query = document.querySelector(".search").value.trim();
+                if (!query) {
+                    alert("검색어를 입력하세요");
+                    return;
+                }
+
+                try {
+                    const res = await axios.get("https://dapi.kakao.com/v2/search/web", {
+                        headers: {
+                            Authorization: "KakaoAK 664dc258e7fe26e4a863c01a8fd75498",
+                        },
+                        params: {
+                            query: query,
+                            size: 10,
+                        },
+                    });
+
+                    const data = res.data;
+
+                    // 기존 결과 제거
+                    let oldResults = document.querySelector("#results");
+                    if (oldResults) oldResults.remove();
+
+                    // 새 결과 영역을 생성
+                    const results = document.createElement("div");
+                    results.id = "results";
+                    results.className = "list-group mt-3";
+
+                    const ul = document.createElement("ul");
+
+                    data.documents.forEach(function (item) {
+                        const li = document.createElement("li");
+                        li.innerHTML = `
+            <h4>
+              <a href="${item.url}" target="_blank" class="nav-link wrap">${item.title}</a>
+            </h4>
+            <p>${item.contents}</p>
+            <p class="d-flex justify-content-end small">
+              <span>${item.datetime.substr(0, 10)}</span>
+            </p>
+          `;
+                        ul.appendChild(li);
+                    });
+
+                    results.appendChild(ul);
+
+                    // form 바로 뒤에 결과 넣기 (레이아웃 안 망가짐)
+                    const form = document.getElementById("searchform");
+                    form.insertAdjacentElement("afterend", results);
+                } catch (error) {
+                    console.error(error);
+                    alert("검색 중 오류가 발생했습니다.");
+                }
+            });
+        </script>
+    </body>
+</html>
